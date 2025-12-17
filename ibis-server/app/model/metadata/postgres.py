@@ -122,12 +122,16 @@ class ExtensionHandler:
         for row in response:
             # TODO: Might want to use a global `_format_postgres_compact_table_name` function.
             table_name = f"{row['f_table_schema']}.{row['f_table_name']}"
+            if table_name not in tables:
+                continue
             table = tables[table_name]
+            # Find the column that matches the geometry/geography column name
             for column in table.columns:
-                column.type = str(
-                    self._transform_postgres_column_type(row["column_type"])
-                )
-                break
+                if column.name == row["column_name"]:
+                    column.type = str(
+                        self._transform_postgres_column_type(row["column_type"])
+                    )
+                    break
 
         return tables
 
