@@ -37,7 +37,7 @@ from google.oauth2 import service_account
 from ibis import BaseBackend
 from ibis.backends.sql.compilers.postgres import compiler as postgres_compiler
 from ibis.expr.datatypes import Decimal
-from ibis.expr.datatypes.core import UUID
+from ibis.expr.datatypes.core import UUID, GeoSpatial
 from ibis.expr.types import Table
 from loguru import logger
 from opentelemetry import trace
@@ -222,12 +222,24 @@ class IbisConnector(ConnectorABC):
                 result_table = self._cast_uuid_columns(
                     result_table=result_table, col_name=name
                 )
+            elif isinstance(dtype, GeoSpatial):
+                # Convert geometry/geography to string for compatibility
+                result_table = self._cast_geometry_columns(
+                    result_table=result_table, col_name=name
+                )
 
         return result_table
 
     def _cast_uuid_columns(self, result_table: Table, col_name: str) -> Table:
         col = result_table[col_name]
         # Convert UUID to string for compatibility
+        casted_col = col.cast("string")
+        return result_table.mutate(**{col_name: casted_col})
+
+    def _cast_geometry_columns(self, result_table: Table, col_name: str) -> Table:
+        col = result_table[col_name]
+        # Convert geometry/geography to string for compatibility
+        # This will output the geometry in WKB hex format
         casted_col = col.cast("string")
         return result_table.mutate(**{col_name: casted_col})
 
@@ -465,6 +477,11 @@ class CannerConnector(IbisConnector):
             elif isinstance(dtype, UUID):
                 # Convert UUID to string for compatibility
                 result_table = self._cast_uuid_columns(
+                    result_table=result_table, col_name=name
+                )
+            elif isinstance(dtype, GeoSpatial):
+                # Convert geometry/geography to string for compatibility
+                result_table = self._cast_geometry_columns(
                     result_table=result_table, col_name=name
                 )
 
