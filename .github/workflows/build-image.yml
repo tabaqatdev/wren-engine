@@ -16,7 +16,7 @@ on:
 
 env:
   ENGINE_IMAGE: ghcr.io/tabaqatdev/wren-engine
-  IBIS_IMAGE: ghcr.io/canner/wren-engine-ibis
+  IBIS_IMAGE: ghcr.io/tabaqatdev/wren-engine-ibis
 
 jobs:
   prepare-tag:
