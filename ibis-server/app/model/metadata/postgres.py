@@ -128,23 +128,21 @@ class ExtensionHandler:
             # Find the column that matches the geometry/geography column name
             for column in table.columns:
                 if column.name == row["column_name"]:
-                    column.type = str(
-                        self._transform_postgres_column_type(row["column_type"])
-                    )
+                    column.type = self._transform_postgres_column_type(row["column_type"])
                     break
 
         return tables
 
     def _transform_postgres_column_type(
         self, data_type: str
-    ) -> RustWrenEngineColumnType:
+    ) -> str:
         """Transform PostgreSQL extension column type.
 
         Args:
             data_type: The PostgreSQL extension data type string
 
         Returns:
-            The corresponding RustWrenEngineColumnType
+            The corresponding column type string
         """
         # Convert to lowercase for comparison
         normalized_type = data_type.lower()
@@ -152,7 +150,7 @@ class ExtensionHandler:
         # Use the module-level extension mapping table
         return POSTGRES_EXTENSION_TYPE_MAPPING.get(
             normalized_type, RustWrenEngineColumnType.UNKNOWN
-        )
+        ).value
 
 
 class PostgresMetadata(Metadata):
@@ -282,14 +280,14 @@ class PostgresMetadata(Metadata):
 
     def _transform_postgres_column_type(
         self, data_type: str
-    ) -> RustWrenEngineColumnType:
+    ) -> str:
         """Transform PostgreSQL data type to RustWrenEngineColumnType.
 
         Args:
             data_type: The PostgreSQL data type string
 
         Returns:
-            The corresponding RustWrenEngineColumnType
+            The corresponding column type string
         """
         # Convert to lowercase for comparison
         normalized_type = data_type.lower()
@@ -302,4 +300,4 @@ class PostgresMetadata(Metadata):
         if mapped_type == RustWrenEngineColumnType.UNKNOWN:
             logger.warning(f"Unknown Postgres data type: {data_type}")
 
-        return mapped_type
+        return mapped_type.value
